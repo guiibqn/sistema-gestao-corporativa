@@ -26,6 +26,34 @@ public class FuncionarioDao extends Dao {
 		}
 	}
 	
+	public void updateFuncionario(FuncionarioVo vo) {
+	    StringBuilder query = new StringBuilder("UPDATE funcionario SET nm_funcionario = ? WHERE rowid = ?");
+
+	    try (Connection con = getConexao();
+	         PreparedStatement ps = con.prepareStatement(query.toString())) {
+
+	        ps.setString(1, vo.getNome());
+	        ps.setString(2, vo.getRowid());
+	        ps.executeUpdate();
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void deleteFuncionario(FuncionarioVo vo) {
+		StringBuilder query = new StringBuilder("DELETE FROM funcionario WHERE rowid = ?");
+		try(Connection con = getConexao();
+		    PreparedStatement ps = con.prepareStatement(query.toString())) {
+
+	        ps.setString(1, vo.getRowid());
+	        ps.executeUpdate();
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
 	public List<FuncionarioVo> findAllFuncionarios(){
 		StringBuilder query = new StringBuilder("SELECT rowid id, nm_funcionario nome FROM funcionario");
 		try(

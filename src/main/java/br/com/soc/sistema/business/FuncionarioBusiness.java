@@ -3,6 +3,7 @@ package br.com.soc.sistema.business;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.soc.sistema.dao.CompromissoDao;
 import br.com.soc.sistema.dao.FuncionarioDao;
 import br.com.soc.sistema.exception.BusinessException;
 import br.com.soc.sistema.filter.FuncionarioFilter;
@@ -19,19 +20,47 @@ public class FuncionarioBusiness {
 	
 	public List<FuncionarioVo> trazerTodosOsFuncionarios(){
 		return dao.findAllFuncionarios();
-	}	
+	}
+	
+    private void validarFuncionario(FuncionarioVo funcionarioVo) throws IllegalArgumentException {
+        if (funcionarioVo.getNome() == null || funcionarioVo.getNome().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nome nao pode ser em branco");
+        }
+    }
 	
 	public void salvarFuncionario(FuncionarioVo funcionarioVo) {
 		try {
-			if(funcionarioVo.getNome().isEmpty())
-				throw new IllegalArgumentException("Nome nao pode ser em branco");
-			
+			validarFuncionario(funcionarioVo);
 			dao.insertFuncionario(funcionarioVo);
 		} catch (Exception e) {
 			throw new BusinessException("Nao foi possivel realizar a inclusao do registro");
 		}
 		
-	}	
+	}
+	
+	public void alterarFuncionario(FuncionarioVo funcionarioVo) throws BusinessException {
+	    try {
+	    	validarFuncionario(funcionarioVo);
+	        dao.updateFuncionario(funcionarioVo);
+
+	    } catch (IllegalArgumentException e) {
+	        // 3. Apanha o erro de validação específico e usa a sua mensagem
+	        throw new BusinessException(e.getMessage());
+	    } catch (Exception e) {
+	        // 4. Apanha qualquer outro erro inesperado e lança uma mensagem genérica
+	        throw new BusinessException("Nao foi possivel realizar a alteracao do registro");
+	    }
+	}
+	
+	public void excluirFuncionario(FuncionarioVo vo) throws BusinessException {
+	    try {
+	    	CompromissoDao compromissoDao = new CompromissoDao();
+	        compromissoDao.deleteCompromissosByFuncionario(vo.getRowid());
+	        dao.deleteFuncionario(vo);
+	    } catch (Exception e) {
+	        throw new BusinessException("Nao foi possivel realizar a exclusao do registro");
+	    }
+	}
 	
 	public List<FuncionarioVo> filtrarFuncionarios(FuncionarioFilter filter){
 		List<FuncionarioVo> funcionarios = new ArrayList<>();

@@ -17,6 +17,29 @@
             <result name="input">/funcionario/cadFuncionario_i.jsp</result>
         	<result name="redirect" type="redirectAction">todosFuncionarios</result>
         </action>
+        
+        <action name="*Agendas" class="br.com.soc.sistema.action.AgendaAction" method="{1}">
+			<result name="success">/agenda/cadAgenda_b.jsp</result>
+			<result name="input">/agenda/cadAgenda_i.jsp</result>
+			<result name="redirect" type="redirectAction">todosAgendas</result>
+		</action>
+		
+		<action name="*Compromissos" class="br.com.soc.sistema.action.CompromissoAction" method="{1}">
+		    <result name="success">/compromisso/cadCompromisso_b.jsp</result>
+		    <result name="input">/compromisso/cadCompromisso_i.jsp</result>
+		    <result name="redirect" type="redirectAction">todosCompromissos</result>
+		</action>
+		
+		<action name="*Relatorio" class="br.com.soc.sistema.action.RelatorioAction" method="{1}">
+			<result name="input">/relatorio/relatorio.jsp</result>
+			
+			<result name="success" type="stream">
+		        <param name="contentType">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</param>
+		        <param name="inputName">excelStream</param>
+		        <param name="contentDisposition">attachment;filename="relatorio_compromissos.xlsx"</param>
+		        <param name="bufferSize">1024</param>
+		    </result>
+		</action>
     </package>
 
 </struts>

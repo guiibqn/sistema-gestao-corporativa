@@ -8,8 +8,8 @@ import java.util.Optional;
 import br.com.soc.sistema.exception.BusinessException;
 
 public enum OpcoesComboBuscar {
-	ID("1", "ID"), 
-	NOME("2", "NOME");
+	ID("1", "Código"), 
+	NOME("2", "Nome");
 	
 	private String codigo;
 	private String descricao;

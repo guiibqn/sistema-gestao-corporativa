@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import br.com.soc.sistema.business.FuncionarioBusiness;
+import br.com.soc.sistema.exception.BusinessException;
 import br.com.soc.sistema.filter.FuncionarioFilter;
 import br.com.soc.sistema.infra.Action;
 import br.com.soc.sistema.infra.OpcoesComboBuscar;
@@ -12,6 +13,10 @@ import br.com.soc.sistema.vo.FuncionarioVo;
 
 public class FuncionarioAction extends Action {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private List<FuncionarioVo> funcionarios = new ArrayList<>();
 	private FuncionarioBusiness business = new FuncionarioBusiness();
 	private FuncionarioFilter filtrar = new FuncionarioFilter();
@@ -32,22 +37,60 @@ public class FuncionarioAction extends Action {
 		return SUCCESS;
 	}
 	
-	public String novo() {
-		if(funcionarioVo.getNome() == null)
-			return INPUT;
-		
-		business.salvarFuncionario(funcionarioVo);
-		
-		return REDIRECT;
+    public String novo() {
+        return INPUT;
+    }
+    
+    public String salvar() {
+        try {
+            business.salvarFuncionario(funcionarioVo);
+            addActionMessage(getText("salvar.sucesso"));
+        } catch (BusinessException e) {
+            addActionError(e.getMessage());
+            return INPUT;
+        }
+        return REDIRECT;
+    }
+	
+    public String editar() {
+        if (funcionarioVo.getRowid() == null || funcionarioVo.getRowid().isEmpty()) {
+            return REDIRECT;
+        }
+        
+        try {
+        	funcionarioVo = business.buscarFuncionarioPor(funcionarioVo.getRowid());
+        }catch(BusinessException e) {
+        	addActionError(e.getMessage());
+        }
+        
+        return INPUT;
+    }
+	
+
+	public String alterar() {
+	    try {
+	        business.alterarFuncionario(getFuncionarioVo());
+	
+	        addActionMessage(getText("alterar.sucesso"));
+	
+	    } catch (BusinessException e) {
+            addActionError(e.getMessage());
+            return INPUT; 
+        }
+	
+
+	    return REDIRECT;
 	}
 	
-	public String editar() {
-		if(funcionarioVo.getRowid() == null)
-			return REDIRECT;
-		
-		funcionarioVo = business.buscarFuncionarioPor(funcionarioVo.getRowid());
-		
-		return INPUT;
+	public String excluir() {
+	    try {
+	        business.excluirFuncionario(getFuncionarioVo());
+	        addActionMessage(getText("excluir.sucesso"));
+	    } catch (BusinessException e) {
+        	addActionError(e.getMessage());
+        	return todos(); 
+        }
+	    return REDIRECT;
 	}
 	
 	public List<OpcoesComboBuscar> getListaOpcoesCombo(){
