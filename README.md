@@ -50,3 +50,13 @@ Pré-requisitos: Java 8 e Maven instalados.
 1. Clone o repositório:
 ```bash
 git clone [https://github.com/guiibqn/sistema-gestao-corporativa.git](https://github.com/guiibqn/sistema-gestao-corporativa.git)
+```
+2. Baixe as dependências via Maven:
+```bash
+mvn dependency:copy-dependencies
+```
+3. Inicie o servidor Jetty:
+```bash
+mvn jetty:run
+```
+4. Acesse no navegador: ```bash http://localhost:8080/avaliacao```
