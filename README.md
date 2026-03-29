@@ -60,3 +60,5 @@ mvn dependency:copy-dependencies
 mvn jetty:run
 ```
 4. Acesse no navegador: ```http://localhost:8080/avaliacao```
+
+**Desenvolvido por:** Guilherme Augusto Boquimpani
