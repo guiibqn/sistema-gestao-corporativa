@@ -1,6 +1,6 @@
 # 🏢 Sistema de Gestão Corporativa (Funcionários e Agendas)
 
-Aplicação web robusta desenvolvida para a gestão completa de funcionários, agendas e marcação de compromissos corporativos. O sistema garante a integridade dos dados através de validações estritas de regras de negócio e gera relatórios dinâmicos.
+Aplicação web desenvolvida para a gestão completa de funcionários, agendas e marcação de compromissos corporativos. O sistema garante a integridade dos dados através de validações estritas de regras de negócio e gera relatórios dinâmicos.
 
 > Projeto desenvolvido como resolução do Desafio Técnico do Programa de Formação Ager (SOC).
 
@@ -59,4 +59,4 @@ mvn dependency:copy-dependencies
 ```bash
 mvn jetty:run
 ```
-4. Acesse no navegador: ```bash http://localhost:8080/avaliacao```
+4. Acesse no navegador: ```http://localhost:8080/avaliacao```
