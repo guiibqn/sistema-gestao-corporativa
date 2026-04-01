@@ -2,7 +2,7 @@
 
 Aplicação web desenvolvida para a gestão completa de funcionários, agendas e marcação de compromissos corporativos. O sistema garante a integridade dos dados através de validações estritas de regras de negócio e gera relatórios dinâmicos.
 
->> Projeto desenvolvido como resolução do Desafio Técnico do Programa de Formação Ager (SOC).
+> Projeto desenvolvido como resolução do Desafio Técnico do Programa de Formação Ager (SOC).
 
 ## 📦 Tecnologias Utilizadas
 
