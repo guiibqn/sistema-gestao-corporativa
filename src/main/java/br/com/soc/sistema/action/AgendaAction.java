@@ -16,8 +16,12 @@ public class AgendaAction extends Action {
     private AgendaVo agendaVo = new AgendaVo();
 
     public String todos() {
-        agendas.addAll(business.trazerTodasAsAgendas());
-        return SUCCESS;
+        try {
+            agendas = business.trazerTodasAsAgendas();
+            return SUCCESS;
+        } catch (Exception e) {
+            return ERROR; 
+        }
     }
 
     public String novo() {
@@ -30,7 +34,9 @@ public class AgendaAction extends Action {
             addActionMessage(getText("salvar.sucesso"));
         } catch (BusinessException e) {
             addActionError(e.getMessage());
-            return INPUT;
+            return INPUT; 
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
@@ -41,11 +47,11 @@ public class AgendaAction extends Action {
         }
         
         try {
-        	agendaVo = business.buscarAgendaPor(agendaVo.getRowid());
-        }catch(BusinessException e) {
-        	addActionError(e.getMessage());
+            agendaVo = business.buscarAgendaPor(agendaVo.getRowid());
+            return INPUT;
+        } catch (Exception e) {
+            return ERROR; 
         }
-        return INPUT;
     }
 
     public String alterar() {
@@ -54,7 +60,9 @@ public class AgendaAction extends Action {
             addActionMessage(getText("alterar.sucesso"));
         } catch (BusinessException e) {
             addActionError(e.getMessage());
-            return INPUT;
+            return INPUT; 
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
@@ -65,10 +73,13 @@ public class AgendaAction extends Action {
             addActionMessage(getText("excluir.sucesso"));
         } catch (BusinessException e) {
             addActionError(e.getMessage());
-            return todos();
+            return todos(); 
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
+
 
     public List<AgendaVo> getAgendas() {
         return agendas;

@@ -2,6 +2,7 @@ package br.com.soc.sistema.action;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import br.com.soc.sistema.business.AgendaBusiness;
 import br.com.soc.sistema.business.CompromissoBusiness;
 import br.com.soc.sistema.business.FuncionarioBusiness;
@@ -25,13 +26,21 @@ public class CompromissoAction extends Action {
     private CompromissoVo compromissoVo = new CompromissoVo();
 
     public String todos() {
-        compromissos.addAll(business.trazerTodosOsCompromissos());
-        return SUCCESS;
+        try {
+            compromissos = business.trazerTodosOsCompromissos();
+            return SUCCESS;
+        } catch (Exception e) {
+            return ERROR; 
+        }
     }
 
     public String novo() {
-        carregarCombos();
-        return INPUT;
+        try {
+            carregarCombos();
+            return INPUT;
+        } catch (Exception e) {
+            return ERROR; 
+        }
     }
     
     public String salvar() {
@@ -41,7 +50,9 @@ public class CompromissoAction extends Action {
         } catch (BusinessException e) {
             addActionError(e.getMessage());
             carregarCombos(); 
-            return INPUT;
+            return INPUT; 
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
@@ -53,26 +64,23 @@ public class CompromissoAction extends Action {
 
         try {
             compromissoVo = business.buscarCompromissoPor(compromissoVo.getRowid());
-
             carregarCombos(); 
-        } catch (BusinessException e) {
-            addActionError(e.getMessage());
+            return INPUT;
+        } catch (Exception e) {
+            return ERROR; 
         }
-
-        return INPUT;
     }
     
     public String alterar() {
-        System.out.println("--- DEBUG: Action.alterar() foi chamado. ---");
         try {
-            System.out.println("--- DEBUG: Enviando para a Business: " + getCompromissoVo().toString());
-            business.alterarCompromisso(getCompromissoVo());
+            business.alterarCompromisso(compromissoVo);
             addActionMessage(getText("alterar.sucesso"));
         } catch (BusinessException e) {
-            System.out.println("--- DEBUG: Action pegou uma BusinessException: " + e.getMessage());
             addActionError(e.getMessage());
             carregarCombos();
-            return INPUT;
+            return INPUT; 
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
@@ -81,8 +89,8 @@ public class CompromissoAction extends Action {
         try {
             business.excluirCompromisso(compromissoVo.getRowid());
             addActionMessage(getText("excluir.sucesso"));
-        } catch (BusinessException e) {
-            addActionError(e.getMessage());
+        } catch (Exception e) {
+            return ERROR; 
         }
         return REDIRECT;
     }
@@ -92,35 +100,36 @@ public class CompromissoAction extends Action {
         this.agendas = agendaBusiness.trazerTodasAsAgendas();
     }
     
+
     public List<CompromissoVo> getCompromissos() { 
-    	return compromissos; 
+        return compromissos; 
     }
     
     public void setCompromissos(List<CompromissoVo> compromissos) { 
-    	this.compromissos = compromissos; 
+        this.compromissos = compromissos; 
     }
     
     public List<FuncionarioVo> getFuncionarios() { 
-    	return funcionarios; 
+        return funcionarios; 
     }
-	
+    
     public void setFuncionarios(List<FuncionarioVo> funcionarios) { 
-    	this.funcionarios = funcionarios; 
+        this.funcionarios = funcionarios; 
     }
-	
+    
     public List<AgendaVo> getAgendas() { 
-    	return agendas; 
+        return agendas; 
     }
-	
+    
     public void setAgendas(List<AgendaVo> agendas) { 
-    	this.agendas = agendas; 
+        this.agendas = agendas; 
     }
-	
+    
     public CompromissoVo getCompromissoVo() { 
-    	return compromissoVo; 
+        return compromissoVo; 
     }
     
     public void setCompromissoVo(CompromissoVo compromissoVo) { 
-    	this.compromissoVo = compromissoVo; 
+        this.compromissoVo = compromissoVo; 
     }
 }

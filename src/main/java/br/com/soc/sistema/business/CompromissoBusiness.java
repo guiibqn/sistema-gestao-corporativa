@@ -11,46 +11,46 @@ import br.com.soc.sistema.vo.CompromissoVo;
 
 public class CompromissoBusiness {
 
-    private CompromissoDao dao;
-    private AgendaDao agendaDao;
+    private final CompromissoDao dao;
+    private final AgendaDao agendaDao;
 
     public CompromissoBusiness() {
         this.dao = new CompromissoDao();
         this.agendaDao = new AgendaDao();
+    }
+    
+    public CompromissoBusiness(CompromissoDao dao, AgendaDao agendaDao) {
+        this.dao = dao;
+        this.agendaDao = agendaDao;
     }
 
     public List<CompromissoVo> trazerTodosOsCompromissos() {
         return dao.findAllCompromissos();
     }
     
-    public List<CompromissoVo> buscarCompromissosPorPeriodo(String dataInicial, String dataFinal) throws BusinessException {
+    public List<CompromissoVo> buscarCompromissosPorPeriodo(String dataInicial, String dataFinal) {
         if (dataInicial == null || dataInicial.trim().isEmpty() || dataFinal == null || dataFinal.trim().isEmpty()) {
             throw new BusinessException("As datas inicial e final são obrigatórias para gerar o relatório.");
         }
-
-        try {
-            return dao.findCompromissosByDateRange(dataInicial, dataFinal);
-        } catch (Exception e) {
-            throw new BusinessException("Nao foi possivel realizar a consulta de compromissos");
-        }
+        return dao.findCompromissosByDateRange(dataInicial, dataFinal);
     }
     
-    private void validarCamposObrigatorios(CompromissoVo compromissoVo) throws IllegalArgumentException {
+    private void validarCamposObrigatorios(CompromissoVo compromissoVo) {
         if (compromissoVo.getIdFuncionario() == null || compromissoVo.getIdFuncionario().trim().isEmpty()) {
-            throw new IllegalArgumentException("Funcionário é obrigatório");
+            throw new BusinessException("Funcionário é obrigatório.");
         }
         if (compromissoVo.getIdAgenda() == null || compromissoVo.getIdAgenda().trim().isEmpty()) {
-            throw new IllegalArgumentException("Agenda é obrigatória");
+            throw new BusinessException("Agenda é obrigatória.");
         }
-        if (compromissoVo.getData() == null || compromissoVo.getData().isEmpty()) {
-            throw new IllegalArgumentException("Data é obrigatória");
+        if (compromissoVo.getData() == null || compromissoVo.getData().trim().isEmpty()) {
+            throw new BusinessException("Data é obrigatória.");
         }
-        if (compromissoVo.getHora() == null || compromissoVo.getHora().isEmpty()) {
-            throw new IllegalArgumentException("Hora é obrigatória");
+        if (compromissoVo.getHora() == null || compromissoVo.getHora().trim().isEmpty()) {
+            throw new BusinessException("Hora é obrigatória.");
         }
     }
     
-    private void validarRegrasDeNegocio(CompromissoVo compromissoVo) throws BusinessException {
+    private void validarRegrasDeNegocio(CompromissoVo compromissoVo) {
         AgendaVo agendaSelecionada = agendaDao.findByCodigo(compromissoVo.getIdAgenda());
         if(agendaSelecionada == null){
             throw new BusinessException("A agenda selecionada não foi encontrada.");
@@ -79,56 +79,25 @@ public class CompromissoBusiness {
         if (!horarioValido) {
             throw new BusinessException("O horário do compromisso é incompatível com o período disponível da agenda.");
         }
-    	
     }
-    
 
     public void salvarCompromisso(CompromissoVo compromissoVo) {
-        try {
-        	validarCamposObrigatorios(compromissoVo);
-        	validarRegrasDeNegocio(compromissoVo);
-            
-            dao.insertCompromisso(compromissoVo);
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException(e.getMessage());
-        } catch (Exception e) {
-            throw new BusinessException("Nao foi possivel realizar a inclusao do registro");
-        }
+        validarCamposObrigatorios(compromissoVo);
+        validarRegrasDeNegocio(compromissoVo);
+        dao.insertCompromisso(compromissoVo);
     }
     
     public void alterarCompromisso(CompromissoVo compromissoVo) {
-        try {
-        	validarCamposObrigatorios(compromissoVo);
-        	validarRegrasDeNegocio(compromissoVo);
-
-            dao.updateCompromisso(compromissoVo);
-            
-        } catch (BusinessException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException(e.getMessage());
-        } catch (Exception e) {
-            throw new BusinessException("Nao foi possivel realizar a alteracao do registro");
-        }
+        validarCamposObrigatorios(compromissoVo);
+        validarRegrasDeNegocio(compromissoVo);
+        dao.updateCompromisso(compromissoVo);
     }
     
-    public void excluirCompromisso(String rowid) throws BusinessException {
-        try {
-            dao.deleteCompromisso(rowid);
-        } catch (Exception e) {
-            throw new BusinessException("Nao foi possivel realizar a exclusao do registro");
-        }
+    public void excluirCompromisso(String rowid) {
+        dao.deleteCompromisso(rowid);
     }
     
-    public CompromissoVo buscarCompromissoPor(String codigo) throws BusinessException {
-        try {
-            return dao.findByCodigo(codigo);
-        } catch (Exception e) {
-            throw new BusinessException("Nao foi possivel buscar o registro");
-        }
+    public CompromissoVo buscarCompromissoPor(String codigo) {
+        return dao.findByCodigo(codigo);
     }
-    
 }

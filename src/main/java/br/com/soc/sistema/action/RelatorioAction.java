@@ -21,37 +21,32 @@ public class RelatorioAction extends Action {
     private static final long serialVersionUID = 1L;
 
     private List<CompromissoVo> compromissos = new ArrayList<>();
-    
     private CompromissoBusiness business = new CompromissoBusiness();
     
     private String dataInicial;
     private String dataFinal;
+    private InputStream excelStream;
 
     public String index() {
-    	compromissos.addAll(business.trazerTodosOsCompromissos());
         return INPUT;
     }
 
     public String gerar() {
         try {
             compromissos = business.buscarCompromissosPorPeriodo(dataInicial, dataFinal);
+            return INPUT;
         } catch (BusinessException e) {
             addActionError(e.getMessage());
-            compromissos.addAll(business.trazerTodosOsCompromissos());
+            return INPUT;
+        } catch (Exception e) {
+            return ERROR;
         }
-        
-        return INPUT;
     }
     
-    private InputStream excelStream; 
-
+     
     public String exportar() {
         try {
-        	if (dataInicial != null && !dataInicial.isEmpty() && dataFinal != null && !dataFinal.isEmpty()) {
-                compromissos = business.buscarCompromissosPorPeriodo(dataInicial, dataFinal);
-            } else {
-                compromissos = business.trazerTodosOsCompromissos();
-            }
+            compromissos = business.buscarCompromissosPorPeriodo(dataInicial, dataFinal);
 
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("Compromissos");
@@ -79,41 +74,21 @@ public class RelatorioAction extends Action {
             workbook.close();
 
             excelStream = new ByteArrayInputStream(bos.toByteArray());
-
             return SUCCESS;
 
-        } catch (Exception e) {
-            addActionError("Ocorreu um erro ao gerar o arquivo Excel.");
-            e.printStackTrace();
+        } catch (BusinessException e) {
+            addActionError("Preencha as datas inicial e final para exportar o relatório.");
             return INPUT;
+        } catch (Exception e) {
+            return ERROR;
         }
     }
 
-    public InputStream getExcelStream() {
-        return excelStream;
-    }
-
-    public List<CompromissoVo> getCompromissos() {
-        return compromissos;
-    }
-
-    public void setCompromissos(List<CompromissoVo> compromissos) {
-        this.compromissos = compromissos;
-    }
-
-    public String getDataInicial() {
-        return dataInicial;
-    }
-
-    public void setDataInicial(String dataInicial) {
-        this.dataInicial = dataInicial;
-    }
-
-    public String getDataFinal() {
-        return dataFinal;
-    }
-
-    public void setDataFinal(String dataFinal) {
-        this.dataFinal = dataFinal;
-    }
+    public InputStream getExcelStream() { return excelStream; }
+    public List<CompromissoVo> getCompromissos() { return compromissos; }
+    public void setCompromissos(List<CompromissoVo> compromissos) { this.compromissos = compromissos; }
+    public String getDataInicial() { return dataInicial; }
+    public void setDataInicial(String dataInicial) { this.dataInicial = dataInicial; }
+    public String getDataFinal() { return dataFinal; }
+    public void setDataFinal(String dataFinal) { this.dataFinal = dataFinal; }
 }

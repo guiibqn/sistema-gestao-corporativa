@@ -10,38 +10,48 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import br.com.soc.sistema.exception.TechnicalException;
 import br.com.soc.sistema.vo.CompromissoVo;
 
 public class CompromissoDao extends Dao {
 
-    public void insertCompromisso(CompromissoVo compromissoVo) {
-        StringBuilder query = new StringBuilder("INSERT INTO compromisso (id_funcionario, id_agenda, dt_compromisso, hr_compromisso) VALUES (?, ?, ?, ?)");
-        try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
 
-            int i = 1;
-            ps.setString(i++, compromissoVo.getIdFuncionario());
-            ps.setString(i++, compromissoVo.getIdAgenda());
-            ps.setDate(i++, Date.valueOf(LocalDate.parse(compromissoVo.getData())));
-            ps.setTime(i++, Time.valueOf(LocalTime.parse(compromissoVo.getHora())));
+    private static final String INSERT = "INSERT INTO compromisso (id_funcionario, id_agenda, dt_compromisso, hr_compromisso) VALUES (?, ?, ?, ?)";
+    private static final String SELECT_ALL = "SELECT c.id, c.id_funcionario, f.nm_funcionario, c.id_agenda, a.nm_agenda, c.dt_compromisso, c.hr_compromisso "
+                                           + "FROM compromisso c "
+                                           + "INNER JOIN funcionario f ON c.id_funcionario = f.id "
+                                           + "INNER JOIN agenda a ON c.id_agenda = a.id";
+    private static final String SELECT_BY_DATE = "SELECT c.id, f.id AS id_funcionario, f.nm_funcionario, a.id AS id_agenda, a.nm_agenda, c.dt_compromisso, c.hr_compromisso "
+                                               + "FROM compromisso c "
+                                               + "INNER JOIN funcionario f ON c.id_funcionario = f.id "
+                                               + "INNER JOIN agenda a ON c.id_agenda = a.id "
+                                               + "WHERE c.dt_compromisso BETWEEN ? AND ?";
+    private static final String SELECT_BY_ID = "SELECT id, id_funcionario, id_agenda, dt_compromisso, hr_compromisso FROM compromisso WHERE id = ?";
+    private static final String COUNT_BY_AGENDA = "SELECT COUNT(*) FROM compromisso WHERE id_agenda = ?";
+    private static final String UPDATE = "UPDATE compromisso SET id_funcionario = ?, id_agenda = ?, dt_compromisso = ?, hr_compromisso = ? WHERE id = ?";
+    private static final String DELETE = "DELETE FROM compromisso WHERE id = ?";
+    private static final String DELETE_BY_FUNC = "DELETE FROM compromisso WHERE id_funcionario = ?";
+
+    public void insertCompromisso(CompromissoVo compromissoVo) {
+        try (Connection con = getConexao();
+             PreparedStatement ps = con.prepareStatement(INSERT)) {
+
+            ps.setInt(1, Integer.parseInt(compromissoVo.getIdFuncionario()));
+            ps.setInt(2, Integer.parseInt(compromissoVo.getIdAgenda()));
+            ps.setDate(3, Date.valueOf(LocalDate.parse(compromissoVo.getData())));
+            ps.setTime(4, Time.valueOf(LocalTime.parse(compromissoVo.getHora())));
             ps.executeUpdate();
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao tentar inserir o compromisso no banco de dados.", e);
         }
     }
 
     public List<CompromissoVo> findAllCompromissos() {
-        StringBuilder query = new StringBuilder(
-            "SELECT c.rowid id, c.id_funcionario, f.nm_funcionario, c.id_agenda, a.nm_agenda, c.dt_compromisso, c.hr_compromisso "
-          + "FROM compromisso c "
-          + "INNER JOIN funcionario f ON c.id_funcionario = f.rowid "
-          + "INNER JOIN agenda a ON c.id_agenda = a.rowid"
-        );
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString());
+             PreparedStatement ps = con.prepareStatement(SELECT_ALL);
              ResultSet rs = ps.executeQuery()) {
 
             List<CompromissoVo> compromissos = new ArrayList<>();
@@ -61,31 +71,22 @@ public class CompromissoDao extends Dao {
             }
             return compromissos;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao buscar a lista de compromissos.", e);
         }
-        return Collections.emptyList();
     }
     
     public List<CompromissoVo> findCompromissosByDateRange(String dataInicial, String dataFinal) {
-        StringBuilder query = new StringBuilder(
-            "SELECT c.rowid id, f.rowid id_funcionario, f.nm_funcionario, a.rowid id_agenda, a.nm_agenda, c.dt_compromisso, c.hr_compromisso "
-          + "FROM compromisso c "
-          + "INNER JOIN funcionario f ON c.id_funcionario = f.rowid "
-          + "INNER JOIN agenda a ON c.id_agenda = a.rowid "
-          + "WHERE c.dt_compromisso BETWEEN ? AND ?"
-        );
-
-        List<CompromissoVo> compromissos = new ArrayList<>();
-        
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
+             PreparedStatement ps = con.prepareStatement(SELECT_BY_DATE)) {
 
-            ps.setDate(1, java.sql.Date.valueOf(dataInicial));
-            ps.setDate(2, java.sql.Date.valueOf(dataFinal));
+            ps.setDate(1, Date.valueOf(dataInicial));
+            ps.setDate(2, Date.valueOf(dataFinal));
 
             try (ResultSet rs = ps.executeQuery()) {
+                List<CompromissoVo> compromissos = new ArrayList<>();
                 DateTimeFormatter dtfData = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 DateTimeFormatter dtfHora = DateTimeFormatter.ofPattern("HH:mm");
+                
                 while (rs.next()) {
                     CompromissoVo vo = new CompromissoVo();
                     vo.setRowid(rs.getString("id"));
@@ -93,52 +94,45 @@ public class CompromissoDao extends Dao {
                     vo.setNomeFuncionario(rs.getString("nm_funcionario"));
                     vo.setIdAgenda(rs.getString("id_agenda"));
                     vo.setNomeAgenda(rs.getString("nm_agenda"));
-					vo.setData(rs.getDate("dt_compromisso").toLocalDate().format(dtfData));
-					vo.setHora(rs.getTime("hr_compromisso").toLocalTime().format(dtfHora));
+                    vo.setData(rs.getDate("dt_compromisso").toLocalDate().format(dtfData));
+                    vo.setHora(rs.getTime("hr_compromisso").toLocalTime().format(dtfHora));
                     compromissos.add(vo);
                 }
+                return compromissos;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao buscar compromissos por período.", e);
         }
-        
-        return compromissos;
     }
     
     public CompromissoVo findByCodigo(String codigo) {
-        StringBuilder query = new StringBuilder("SELECT rowid id, id_funcionario, id_agenda, dt_compromisso, hr_compromisso FROM compromisso ")
-            .append("WHERE rowid = ?");
-
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
+             PreparedStatement ps = con.prepareStatement(SELECT_BY_ID)) {
 
-            ps.setString(1, codigo);
+            ps.setInt(1, Integer.parseInt(codigo));
 
             try (ResultSet rs = ps.executeQuery()) {
-                CompromissoVo vo = null;
-                if (rs.next()) {
-                    vo = new CompromissoVo();
+                if (rs.next()) { 
+                    CompromissoVo vo = new CompromissoVo();
                     vo.setRowid(rs.getString("id"));
                     vo.setIdFuncionario(rs.getString("id_funcionario"));
                     vo.setIdAgenda(rs.getString("id_agenda"));
                     vo.setData(rs.getDate("dt_compromisso").toLocalDate().toString());
                     vo.setHora(rs.getTime("hr_compromisso").toLocalTime().toString());
+                    return vo;
                 }
-                return vo;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao buscar o compromisso pelo código.", e);
         }
         return null;
     }
     
     public int countCompromissosByAgenda(String idAgenda) {
-        StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM compromisso WHERE id_agenda = ?");
-
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
+             PreparedStatement ps = con.prepareStatement(COUNT_BY_AGENDA)) {
 
-            ps.setString(1, idAgenda);
+            ps.setInt(1, Integer.parseInt(idAgenda));
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -146,54 +140,48 @@ public class CompromissoDao extends Dao {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao contar compromissos da agenda.", e);
         }
         return 0;
     }
 
     public void updateCompromisso(CompromissoVo compromissoVo) {
-        StringBuilder query = new StringBuilder("UPDATE compromisso SET id_funcionario = ?, id_agenda = ?, dt_compromisso = ?, hr_compromisso = ? WHERE rowid = ?");
-        
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
+             PreparedStatement ps = con.prepareStatement(UPDATE)) {
 
-            int i = 1;
-            ps.setString(i++, compromissoVo.getIdFuncionario());
-            ps.setString(i++, compromissoVo.getIdAgenda());
-            
-            ps.setDate(i++, Date.valueOf(LocalDate.parse(compromissoVo.getData())));
-            ps.setTime(i++, Time.valueOf(LocalTime.parse(compromissoVo.getHora())));
-            
-            ps.setString(i++, compromissoVo.getRowid());
+            ps.setInt(1, Integer.parseInt(compromissoVo.getIdFuncionario()));
+            ps.setInt(2, Integer.parseInt(compromissoVo.getIdAgenda()));
+            ps.setDate(3, Date.valueOf(LocalDate.parse(compromissoVo.getData())));
+            ps.setTime(4, Time.valueOf(LocalTime.parse(compromissoVo.getHora())));
+            ps.setInt(5, Integer.parseInt(compromissoVo.getRowid()));
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao atualizar o compromisso no banco de dados.", e);
         }
     }
     
     public void deleteCompromisso(String rowid) {
-        StringBuilder query = new StringBuilder("DELETE FROM compromisso WHERE rowid = ?");
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
-            ps.setString(1, rowid);
+             PreparedStatement ps = con.prepareStatement(DELETE)) {
+             
+            ps.setInt(1, Integer.parseInt(rowid));
             ps.executeUpdate();
+            
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao excluir o compromisso.", e);
         }
     }
     
     public void deleteCompromissosByFuncionario(String idFuncionario) {
-        StringBuilder query = new StringBuilder("DELETE FROM compromisso WHERE id_funcionario = ?");
-
         try (Connection con = getConexao();
-             PreparedStatement ps = con.prepareStatement(query.toString())) {
+             PreparedStatement ps = con.prepareStatement(DELETE_BY_FUNC)) {
 
-            ps.setString(1, idFuncionario);
+            ps.setInt(1, Integer.parseInt(idFuncionario));
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new TechnicalException("Erro ao excluir compromissos do funcionário.", e);
         }
     }
 }
