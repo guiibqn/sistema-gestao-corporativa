@@ -79,6 +79,17 @@ public class CompromissoBusiness {
         if (!horarioValido) {
             throw new BusinessException("O horário do compromisso é incompatível com o período disponível da agenda.");
         }
+        
+        boolean existeChoque = dao.existeChoqueHorario(
+                compromissoVo.getIdFuncionario(), 
+                compromissoVo.getData(), 
+                compromissoVo.getHora(), 
+                compromissoVo.getRowid()
+            );
+            
+            if (existeChoque) {
+                throw new BusinessException("Este funcionário já possui um compromisso agendado exatamente nesta data e horário.");
+            }
     }
 
     public void salvarCompromisso(CompromissoVo compromissoVo) {

@@ -184,4 +184,34 @@ public class CompromissoDao extends Dao {
             throw new TechnicalException("Erro ao excluir compromissos do funcionário.", e);
         }
     }
+    
+    public boolean existeChoqueHorario(String idFuncionario, String data, String hora, String idCompromisso) {
+        String sql = "SELECT COUNT(*) FROM compromisso WHERE id_funcionario = ? AND dt_compromisso = ? AND hr_compromisso = ?";
+        
+        // Se tiver ID (caso de edição), ignora o próprio registro na contagem para ele não dar choque com ele mesmo
+        if (idCompromisso != null && !idCompromisso.trim().isEmpty()) {
+            sql += " AND id != ?";
+        }
+        
+        try (Connection con = getConexao();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
+            ps.setInt(1, Integer.parseInt(idFuncionario));
+            ps.setDate(2, Date.valueOf(LocalDate.parse(data)));
+            ps.setTime(3, Time.valueOf(LocalTime.parse(hora)));
+            
+            if (idCompromisso != null && !idCompromisso.trim().isEmpty()) {
+                ps.setInt(4, Integer.parseInt(idCompromisso));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Retorna true se encontrar algum registro
+                }
+            }
+        } catch (SQLException e) {
+            throw new TechnicalException("Erro ao validar choque de horários no banco de dados.", e);
+        }
+        return false;
+    }
 }

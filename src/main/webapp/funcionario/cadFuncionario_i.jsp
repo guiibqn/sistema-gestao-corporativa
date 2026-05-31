@@ -1,105 +1,131 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="s" uri="/struts-tags" %>
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title><s:text name="label.titulo.pagina.cadastro"/></title>
-		<%-- CORREÇÃO CRÍTICA: Usando s:url para garantir que o CSS nunca quebre --%>
-		<s:url value="/webjars/bootstrap/5.1.3/css/bootstrap.min.css" var="cssUrl" />
-        <link rel='stylesheet' href='${cssUrl}'>
-	</head>
-	<body class="bg-secondary">
-		<%-- MELHORIA: Barra de navegação adicionada para consistência --%>
-		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-			<div class="container">
-                <a class="navbar-brand" href="#"><s:text name="label.titulo.pagina"/></a>
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <s:url action="todosFuncionarios" var="urlFunc"/>
-                            <s:a cssClass="nav-link active" href="%{urlFunc}"><s:text name="label.menu.funcionarios"/></s:a>
-                        </li>
-                        <li class="nav-item">
-                            <s:url action="todosAgendas" var="urlAgenda"/>
-                            <s:a cssClass="nav-link" href="%{urlAgenda}"><s:text name="label.menu.agendas"/></s:a>
-                        </li>
-                         <li class="nav-item">
-                            <s:url action="todosCompromissos" var="urlComp"/>
-                            <s:a cssClass="nav-link" href="%{urlComp}"><s:text name="label.menu.compromissos"/></s:a>
-                        </li>
-                        <li class="nav-item">
-	                        <s:url action="indexRelatorio" var="urlRelat"/>
-	                        <s:a cssClass="nav-link" href="%{urlRelat}"><s:text name="label.menu.relatorio"/></s:a>
-                        </li>						
-                    </ul>
-                </div>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><s:text name="label.titulo.pagina.cadastro"/></title>
+
+	<s:url value="/webjars/bootstrap/5.1.3/css/bootstrap.min.css" var="cssUrl" />
+    <link rel="stylesheet" href="${cssUrl}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <s:url value="/css/dashboard.css" var="dashboardCss" />
+    <link rel="stylesheet" href="${dashboardCss}">
+</head>
+<body>
+
+    <%-- ═══ SIDEBAR ═══ --%>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-box-seam-fill"></i>
+            SOC <span>Admin</span>
+        </div>
+
+        <span class="sidebar-section-label">Menu</span>
+
+        <s:url action="todosFuncionarios" var="urlFunc"/>
+        <a href="${urlFunc}" class="active">
+            <i class="bi bi-people-fill"></i>
+            <s:text name="label.menu.funcionarios"/>
+        </a>
+
+        <s:url action="todosAgendas" var="urlAgenda"/>
+        <a href="${urlAgenda}">
+            <i class="bi bi-calendar3"></i>
+            <s:text name="label.menu.agendas"/>
+        </a>
+
+        <s:url action="todosCompromissos" var="urlComp"/>
+        <a href="${urlComp}">
+            <i class="bi bi-check2-square"></i>
+            <s:text name="label.menu.compromissos"/>
+        </a>
+
+        <s:url action="indexRelatorio" var="urlRelat"/>
+        <a href="${urlRelat}">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <s:text name="label.menu.relatorio"/>
+        </a>
+    </div>
+
+    <%-- ═══ MAIN ═══ --%>
+    <div class="main-content">
+
+        <%-- Top Bar --%>
+        <div class="main-topbar">
+            <div>
+                <s:if test="funcionarioVo.rowid != null && !funcionarioVo.rowid.isEmpty()">
+                    <h2><s:text name="label.titulo.pagina.edicao"/></h2>
+                    <p>Altere os dados do funcionário e salve</p>
+                </s:if>
+                <s:else>
+                    <h2><s:text name="label.titulo.pagina.novo"/></h2>
+                    <p>Preencha os dados para cadastrar um novo funcionário</p>
+                </s:else>
             </div>
-		</nav>
+            <s:url action="todosFuncionarios" var="todos"/>
+            <a href="${todos}" class="btn-voltar">
+                <i class="bi bi-arrow-left"></i>
+                <s:text name="label.titulo.pagina.consulta"/>
+            </a>
+        </div>
 
-		<div class="container mt-4">
-			<s:form action="%{funcionarioVo.rowid == null || funcionarioVo.rowid.isEmpty() ? 'salvarFuncionarios' : 'alterarFuncionarios'}" method="POST">
-				<div class="card">
-					<div class="card-header">
-						<div class="row w-100 align-items-center">
-							<div class="col-sm-5">
-								<s:url action="todosFuncionarios" var="todos"/>
-								<s:a href="%{todos}" cssClass="btn btn-success"><s:text name="label.titulo.pagina.consulta"/></s:a>
-							</div>
-							<div class="col-sm text-center">
-								<s:if test="funcionarioVo.rowid != null && !funcionarioVo.rowid.isEmpty()">
-									<h5 class="card-title mb-0"><strong><s:text name="label.titulo.pagina.edicao"/></strong></h5>
-								</s:if>
-								<s:else>
-									<h5 class="card-title mb-0"><strong><s:text name="label.titulo.pagina.novo"/></strong></h5>
-								</s:else>
-							</div>
-							<div class="col-sm-5"></div>
-						</div>
-					</div>
-					
-					<%-- MELHORIA: Bloco de mensagens adicionado para feedback ao utilizador --%>
-					<s:if test="hasActionErrors()">
-						<div class="alert alert-danger m-3"><s:actionerror/></div>
-					</s:if>
-					<s:if test="hasActionMessages()">
-						<div class="alert alert-success m-3"><s:actionmessage/></div>
-					</s:if>
+        <%-- Inner content --%>
+        <div class="page-inner">
 
-					<div class="card-body">
-						<s:if test="funcionarioVo.rowid != null && !funcionarioVo.rowid.isEmpty()">
-							<div class="row align-items-center mb-3">
-								<label class="col-sm-2 col-form-label text-center fw-bold"><s:text name="label.id"/>:</label>	
-								<div class="col-sm-2">
-									<s:textfield cssClass="form-control" name="funcionarioVo.rowid" readonly="true"/>
-								</div>	
-							</div>
-						</s:if>
-						
-						<div class="row align-items-center">
-							<label class="col-sm-2 col-form-label text-center fw-bold"><s:text name="label.nome"/>:</label>	
-							<div class="col-sm-10">
-								<s:textfield cssClass="form-control" name="funcionarioVo.nome"/>							
-							</div>	
-						</div>
-						
-					</div>
+            <s:form action="%{funcionarioVo.rowid == null || funcionarioVo.rowid.isEmpty() ? 'salvarFuncionarios' : 'alterarFuncionarios'}" method="POST" cssClass="form-card">
 
-					<div class="card-footer">
-						<div class="row">
-                            <div class="col-sm-4 offset-sm-1">
-                                <button type="submit" class="btn btn-primary w-100"><s:text name="label.salvar"/></button>
-                            </div>
-                            <div class="col-sm-4 offset-sm-2">
-                                <button type="reset" class="btn btn-secondary w-100"><s:text name="label.limpar.formulario"/></button>
-                            </div>
+                <div class="form-card-header">
+                    <h5>
+                        <i class="bi bi-person-fill me-2" style="color:var(--accent)"></i>
+                        Dados do Funcionário
+                    </h5>
+                </div>
+
+                <div class="form-card-body">
+
+                    <%-- Alerts --%>
+                    <s:if test="hasActionErrors()">
+                        <div class="alert alert-danger mb-0"><s:actionerror/></div>
+                    </s:if>
+                    <s:if test="hasActionMessages()">
+                        <div class="alert alert-success mb-0"><s:actionmessage/></div>
+                    </s:if>
+
+                    <%-- ID (somente na edição) --%>
+                    <s:if test="funcionarioVo.rowid != null && !funcionarioVo.rowid.isEmpty()">
+                        <div class="field-group" style="max-width:140px">
+                            <label><s:text name="label.id"/></label>
+                            <s:textfield cssClass="form-control" name="funcionarioVo.rowid" readonly="true"/>
                         </div>
-					</div>
-				</div>
-			</s:form>			
-		</div>
-		
-		<s:url value="/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js" var="jsUrl" />
-        <script src="${jsUrl}"></script>
-	</body>
+                    </s:if>
+
+                    <%-- Nome --%>
+                    <div class="field-group">
+                        <label><s:text name="label.nome"/></label>
+                        <s:textfield cssClass="form-control" name="funcionarioVo.nome" placeholder="Nome completo do funcionário"/>
+                    </div>
+
+                </div>
+
+                <div class="form-card-footer">
+                    <button type="submit" class="btn-salvar">
+                        <i class="bi bi-check-lg me-1"></i>
+                        <s:text name="label.salvar"/>
+                    </button>
+                    <button type="reset" class="btn-limpar">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        <s:text name="label.limpar.formulario"/>
+                    </button>
+                </div>
+
+            </s:form>
+
+        </div>
+    </div>
+
+    <s:url value="/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js" var="jsUrl"/>
+    <script src="${jsUrl}"></script>
+</body>
 </html>
